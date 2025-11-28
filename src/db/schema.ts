@@ -9,7 +9,7 @@ export const users = pgTable('users', {
   name: text('name'),
 });
 
-// 2. courses 테이블 (학교 전체 강의 목록 - New 탭 검색용)
+// 2. courses 테이블
 export const courses = pgTable('courses', {
   id: serial('id').primaryKey(),
   code: text('code').notNull(),         // 강의코드 (예: GS-1402)
@@ -19,7 +19,7 @@ export const courses = pgTable('courses', {
   credit: integer('credit').notNull(),  // 학점
 });
 
-// 3. user_courses 테이블 (내가 수강한 강의 - Home 탭 리스트용)
+// 3. user_courses 테이블
 export const userCourses = pgTable('user_courses', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -27,12 +27,11 @@ export const userCourses = pgTable('user_courses', {
   semester: text('semester').notNull(), // 학기 (예: 2025-fall)
   grade: text('grade'),                 // 성적 (예: A+, 아직 없으면 null)
 }, (t) => ({
-  // *중요*: 한 유저가 같은 학기에 같은 수업을 두 번 넣는 실수를 DB 차원에서 막습니다.
+  //유저가 같은 학기에 같은 수업을 두 번 넣는 실수를 DB 차원에서 방지
   unq: uniqueIndex('user_course_unique_idx').on(t.userId, t.courseId, t.semester),
 }));
 
-// 4. 관계 설정 (Relations) - *Drizzle의 꽃*
-// 이걸 해둬야 나중에 "내 시간표 가져올 때 강의 정보도 같이 줘"가 가능합니다.
+// 4. 관계 설정 (Relations)
 export const userCoursesRelations = relations(userCourses, ({ one }) => ({
   course: one(courses, {
     fields: [userCourses.courseId],
