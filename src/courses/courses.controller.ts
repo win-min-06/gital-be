@@ -1,29 +1,29 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { CoursesService } from './courses.service';
+import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
+import { SearchCoursesDto } from './dto/search-courses.dto';
+import { GetMyScheduleDto } from './dto/get-my-schedule.dto';
 
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Get()
-  search(@Query('keyword') keyword: string) {
-    return this.coursesService.search(keyword);
+  search(@Query() query: SearchCoursesDto) {
+    return this.coursesService.search(query.keyword);
   }
 
   @Get('my')
-  getMySchedule(
-    @Query('userId') userId: string,
-    @Query('semester') semester: string,
-  ) {
-    return this.coursesService.getMySchedule(Number(userId), semester);
+  getMySchedule(@Query() query: GetMyScheduleDto) {
+    return this.coursesService.getMySchedule(query.userId, query.semester);
   }
 
-  @Post('enroll')
-  enroll(
-    @Body('userId') userId: number,
-    @Body('courseId') courseId: number,
-    @Body('semester') semester: string,
-  ) {
-    return this.coursesService.enroll(userId, courseId, semester);
+@Post('enroll')
+  enroll(@Body() body: CreateEnrollmentDto) {
+    return this.coursesService.enroll(
+        body.userId, 
+        body.courseId, 
+        body.semester
+    );
   }
 }
