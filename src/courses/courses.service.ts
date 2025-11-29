@@ -1,25 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CoursesRepository } from './courses.repository';
 
 @Injectable()
 export class CoursesService {
-  // DB 대신 Repository를 주입
   constructor(private readonly coursesRepository: CoursesRepository) {}
 
-  // [New 탭] 강의 검색
+  // 강의 검색
   async search(keyword: string) {
-    // 만약 "검색어는 2글자 이상이어야 한다" 같은 룰이 있다면 여기서 검사합니다.
+    if (keyword && keyword.length < 2) {
+      throw new Error('검색어는 최소 2글자 이상이어야 합니다.');
+    }
     return this.coursesRepository.findAll(keyword);
   }
 
-  // [Home 탭] 내 강의 목록
+  // 내 강의 목록
   async getMySchedule(userId: number, semester: string) {
     return this.coursesRepository.findMyCourses(userId, semester);
   }
 
-  // [New 탭] 수강 신청
+  // 수강 신청 (비즈니스 로직 구현)
   async enroll(userId: number, courseId: number, semester: string) {
-    // 예: "이미 신청한 강의인지 확인" 같은 로직이 들어갈 자리
-    return this.coursesRepository.createEnrollment(userId, courseId, semester);
+    // 1. 강의 존재 확인
+    const course = await this.coursesRepository.findCourseById(courseId);
+    if (!course) {
+      throw new NotFoundException('존재하지 않는 강의입니다.');
+    }
+
+    // 2. 유저 존재 확인
+    const user = await this.coursesRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저입니다.');
+    }
+
+    // 3. 이미 신청한 강의인지 확인
+    const existingEnrollment = await this.coursesRepository.findEnrollment(
+      userId,
+      courseId,
+      semester
+    );
+    if (existingEnrollment) {
+      throw new ConflictException('이미 신청한 강의입니다.');
+    }
+
+    // 4. 수강신청 생성
+    const result = await this.coursesRepository.createEnrollment(userId, courseId, semester);
+
+    return {
+      success: true,
+      message: '수강신청이 완료되었습니다.',
+      data: result[0],
+    };
   }
 }

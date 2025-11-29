@@ -7,6 +7,7 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name'),
+  password: text('password').notNull(), // 비밀번호 필드 추가
 });
 
 // 2. courses 테이블

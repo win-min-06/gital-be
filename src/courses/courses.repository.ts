@@ -35,6 +35,31 @@ export class CoursesRepository {
       userId,
       courseId,
       semester,
+    }).returning();
+  }
+
+  // 4. 특정 강의 정보 조회
+  async findCourseById(courseId: number) {
+    return this.db.query.courses.findFirst({
+      where: eq(schema.courses.id, courseId),
+    });
+  }
+
+  // 5. 유저 존재 확인
+  async findUserById(userId: number) {
+    return this.db.query.users.findFirst({
+      where: eq(schema.users.id, userId),
+    });
+  }
+
+  // 6. 이미 신청한 강의인지 확인
+  async findEnrollment(userId: number, courseId: number, semester: string) {
+    return this.db.query.userCourses.findFirst({
+      where: and(
+        eq(schema.userCourses.userId, userId),
+        eq(schema.userCourses.courseId, courseId),
+        eq(schema.userCourses.semester, semester)
+      ),
     });
   }
 }
