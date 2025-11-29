@@ -11,8 +11,8 @@ export class UsersRepository {
   ) {}
 
   // 유저 생성 (회원가입)
-  async create(email: string, name: string) {
-    return this.db.insert(schema.users).values({ email, name }).returning();
+  async create(email: string, name: string, password: string) {
+    return this.db.insert(schema.users).values({ email, name, password }).returning();
   }
 
   // 유저 조회 (로그인 시 필요)
